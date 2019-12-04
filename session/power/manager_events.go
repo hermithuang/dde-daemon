@@ -26,6 +26,18 @@ import (
 	. "pkg.deepin.io/lib/gettext"
 )
 
+func (m *Manager) getSubmodulePSP() *powerSavePlan {
+	v, ok := m.submodules[submodulePSP]
+	if !ok {
+		return nil
+	}
+	psp, ok := v.(*powerSavePlan)
+	if !ok {
+		return nil
+	}
+	return psp
+}
+
 func (m *Manager) setPrepareSuspend(v bool) {
 	m.prepareSuspendLocker.Lock()
 	m.prepareSuspend = v
@@ -81,6 +93,11 @@ func (m *Manager) handleWakeup() {
 	m.setDPMSModeOn()
 	m.helper.Power.RefreshBatteries(0)
 	playSound(soundutils.EventWakeup)
+
+	// refresh brightness, because of suspend too long, no 'IdleOff' event, just 'IdleOn'
+	if psp := m.getSubmodulePSP(); psp != nil {
+		psp.resetBrightness()
+	}
 }
 
 func (m *Manager) handleBatteryDisplayUpdate() {
