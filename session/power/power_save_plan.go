@@ -457,6 +457,21 @@ func (psp *powerSavePlan) HandleIdleOn() {
 		return
 	}
 
+	var timeout int32
+	if psp.manager.OnBattery {
+		timeout = psp.manager.BatteryScreenBlackDelay.Get()
+	} else {
+		timeout = psp.manager.LinePowerScreenBlackDelay.Get()
+	}
+
+	// TODO(jouyouyun): The better way is disable idle before suspend and enable idle after wakeup
+	if _prevWakeupTime > 0 && (time.Now().Unix()-_prevWakeupTime) < int64(timeout) {
+		_prevWakeupTime = 0
+		psp.idleOn = true
+		psp.manager.helper.ScreenSaver.SimulateUserActivity(0)
+		return
+	}
+
 	if isActive, err := psp.manager.isX11SessionActive(); err != nil {
 		logger.Warning(err)
 		return
