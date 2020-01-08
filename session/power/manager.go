@@ -94,7 +94,7 @@ type Manager struct {
 	sessionActive                bool
 
 	// if prepare suspend, ignore idle off
-	prepareSuspend       bool
+	prepareSuspend       int
 	prepareSuspendLocker sync.Mutex
 }
 
@@ -109,6 +109,7 @@ func newManager(service *dbusutil.Service) (*Manager, error) {
 	m.sessionSigLoop = dbusutil.NewSignalLoop(sessionBus, 10)
 	m.systemSigLoop = dbusutil.NewSignalLoop(systemBus, 10)
 	m.inhibitFd = -1
+	m.prepareSuspend = suspendStateUnknown
 
 	helper, err := newHelper(systemBus, sessionBus)
 	if err != nil {

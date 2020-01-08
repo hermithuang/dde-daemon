@@ -26,27 +26,29 @@ import (
 	. "pkg.deepin.io/lib/gettext"
 )
 
-func (m *Manager) getSubmodulePSP() *powerSavePlan {
-	v, ok := m.submodules[submodulePSP]
-	if !ok {
-		return nil
-	}
-	psp, ok := v.(*powerSavePlan)
-	if !ok {
-		return nil
-	}
-	return psp
-}
+const (
+	suspendStateUnknown = iota + 1
+	suspendStateFinish
+	suspendStatePrepare
+	suspendStateWakeup
+)
 
-func (m *Manager) setPrepareSuspend(v bool) {
+func (m *Manager) setPrepareSuspend(v int) {
 	m.prepareSuspendLocker.Lock()
 	m.prepareSuspend = v
 	m.prepareSuspendLocker.Unlock()
 }
 
-func (m *Manager) getPrepareSuspend() bool {
+func (m *Manager) shouldIgnoreIdleOn() bool {
 	m.prepareSuspendLocker.Lock()
-	v := m.prepareSuspend
+	v := (m.prepareSuspend > suspendStateFinish)
+	m.prepareSuspendLocker.Unlock()
+	return v
+}
+
+func (m *Manager) shouldIgnoreIdleOff() bool {
+	m.prepareSuspendLocker.Lock()
+	v := (m.prepareSuspend == suspendStatePrepare)
 	m.prepareSuspendLocker.Unlock()
 	return v
 }
@@ -74,7 +76,7 @@ func (m *Manager) initOnBatteryChangedHandler() {
 }
 
 func (m *Manager) handleBeforeSuspend() {
-	m.setPrepareSuspend(true)
+	m.setPrepareSuspend(suspendStatePrepare)
 	logger.Debug("before sleep")
 	if m.SleepLock.Get() || m.ScreenBlackLock.Get() {
 		m.lockWaitShow(4 * time.Second)
@@ -82,7 +84,7 @@ func (m *Manager) handleBeforeSuspend() {
 }
 
 func (m *Manager) handleWakeup() {
-	m.setPrepareSuspend(false)
+	m.setPrepareSuspend(suspendStateWakeup)
 	logger.Debug("wakeup")
 	if m.SleepLock.Get() || m.ScreenBlackLock.Get() {
 		// TODO(jouyouyun): detect lock whether showing
@@ -93,11 +95,6 @@ func (m *Manager) handleWakeup() {
 	m.setDPMSModeOn()
 	m.helper.Power.RefreshBatteries(0)
 	playSound(soundutils.EventWakeup)
-
-	// refresh brightness, because of suspend too long, no 'IdleOff' event, just 'IdleOn'
-	if psp := m.getSubmodulePSP(); psp != nil {
-		psp.resetBrightness()
-	}
 }
 
 func (m *Manager) handleBatteryDisplayUpdate() {
