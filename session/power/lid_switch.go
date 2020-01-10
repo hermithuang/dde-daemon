@@ -58,6 +58,7 @@ func (h *LidSwitchHandler) Start() error {
 func (h *LidSwitchHandler) onLidClosed() {
 	logger.Info("Lid closed")
 	m := h.manager
+	m.setPrepareSuspend(suspendStateLidClose)
 	m.PropsMu.Lock()
 	m.lidSwitchState = lidSwitchStateClose
 	m.PropsMu.Unlock()
@@ -86,6 +87,7 @@ func (h *LidSwitchHandler) onLidClosed() {
 func (h *LidSwitchHandler) onLidOpened() {
 	logger.Info("Lid opened")
 	m := h.manager
+	m.setPrepareSuspend(suspendStateLidOpen)
 	m.PropsMu.Lock()
 	m.lidSwitchState = lidSwitchStateOpen
 	m.PropsMu.Unlock()
