@@ -28,7 +28,7 @@ import (
 	apidevice "github.com/linuxdeepin/go-dbus-factory/com.deepin.api.device"
 	bluez "github.com/linuxdeepin/go-dbus-factory/org.bluez"
 	ofdbus "github.com/linuxdeepin/go-dbus-factory/org.freedesktop.dbus"
-	login1 "github.com/linuxdeepin/go-dbus-factory/org.freedesktop.login1"
+	//login1 "github.com/linuxdeepin/go-dbus-factory/org.freedesktop.login1"
 	dbus "pkg.deepin.io/lib/dbus1"
 	"pkg.deepin.io/lib/dbusutil"
 	"pkg.deepin.io/lib/dbusutil/proxy"
@@ -220,8 +220,6 @@ func (b *Bluetooth) init() {
 	b.config.clearSpareConfig(b)
 	b.config.save()
 	go b.tryConnectPairedDevices()
-	// move to power module
-	// b.wakeupWorkaround()
 }
 
 func (b *Bluetooth) unblockBluetoothDevice() {
@@ -601,6 +599,11 @@ func (b *Bluetooth) tryConnectPairedDevices() {
 		if !b.isBREDRDevice(dev) {
 			continue
 		}
+
+		if !obj.adapter.Powered {
+			continue
+		}
+
 		logger.Debug("Will auto connect device:", obj.String(), obj.adapter.address, obj.Address)
 		err = obj.doConnect(false)
 		if err != nil {
@@ -655,30 +658,4 @@ func (b *Bluetooth) isBREDRDevice(dev *device) bool {
 		}
 	}
 	return false
-}
-
-func (b *Bluetooth) wakeupWorkaround() {
-	// try connect devices after suspend wakeup
-	var loginManager = login1.NewManager(b.systemSigLoop.Conn())
-	loginManager.InitSignalExt(b.systemSigLoop, true)
-	loginManager.ConnectPrepareForSleep(func(isSleep bool) {
-		if isSleep {
-			logger.Debug("prepare to sleep")
-			return
-		}
-		logger.Debug("Wakeup from sleep, will set adapter and try connect device")
-		time.Sleep(time.Second * 3)
-		for _, aobj := range b.adapters {
-			powered := b.config.getAdapterConfigPowered(aobj.address)
-			logger.Debugf("Compare adapter(%s) powered with config: ifc(%v), config(%v)", aobj.address, aobj.Powered, powered)
-			if powered != aobj.Powered {
-				_ = aobj.core.Powered().Set(0, powered)
-			}
-			if !powered {
-				continue
-			}
-			_ = aobj.core.Discoverable().Set(0, b.config.Discoverable)
-		}
-		b.tryConnectPairedDevices()
-	})
 }

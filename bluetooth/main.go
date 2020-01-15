@@ -56,6 +56,13 @@ func HandlePrepareForSleep(sleep bool) {
 	logger.Debug("Wakeup from sleep, will set adapter and try connect device")
 	time.Sleep(time.Second * 3)
 	for _, aobj := range globalBluetooth.adapters {
+		powered := globalBluetooth.config.getAdapterConfigPowered(aobj.address)
+		logger.Debugf("Compare adapter(%s) powered with config: ifc(%v), config(%v)", aobj.address, aobj.Powered, powered)
+
+		if powered != aobj.Powered {
+			_ = aobj.core.Powered().Set(0, powered)
+		}
+
 		if !aobj.Powered {
 			continue
 		}
