@@ -38,8 +38,6 @@ func (m *Manager) getSubmodulePSP() *powerSavePlan {
 	return psp
 }
 
-var _prevWakeupTime int64 = 0
-
 func (m *Manager) setPrepareSuspend(v bool) {
 	m.prepareSuspendLocker.Lock()
 	m.prepareSuspend = v
@@ -84,7 +82,6 @@ func (m *Manager) handleBeforeSuspend() {
 }
 
 func (m *Manager) handleWakeup() {
-	_prevWakeupTime = time.Now().Unix()
 	m.setPrepareSuspend(false)
 	logger.Debug("wakeup")
 	if m.SleepLock.Get() || m.ScreenBlackLock.Get() {
