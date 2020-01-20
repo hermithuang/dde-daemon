@@ -354,7 +354,7 @@ func (psp *powerSavePlan) makeSystemSleep() {
 	psp.stopScreensaver()
 	logger.Info("sleep")
 	//psp.manager.setDPMSModeOn()
-	psp.resetBrightness()
+	//psp.resetBrightness()
 	psp.manager.doSuspend()
 }
 
