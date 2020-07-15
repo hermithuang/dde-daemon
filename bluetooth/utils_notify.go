@@ -99,7 +99,8 @@ func notifyConnected(alias string) {
 	notify(notifyIconBluetoothConnected, "", fmt.Sprintf(format, alias))
 }
 func notifyDisconnected(alias string) {
-	notify(notifyIconBluetoothDisconnected, Tr("Disconnected"), alias)
+	format := Tr("%q disconnected")
+	notify(notifyIconBluetoothDisconnected, "", fmt.Sprintf(format, alias))
 }
 
 func notifyConnectFailedHostDown(alias string) {

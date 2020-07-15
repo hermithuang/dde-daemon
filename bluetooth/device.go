@@ -274,7 +274,12 @@ func (d *device) connectProperties() {
 			d.ConnectState = true
 			d.connectedTime = time.Now()
 		} else {
+			//If the pairing is successful and connected, the signal will be sent when the device is disconnected
+			if d.Paired && d.ConnectState {
+				notifyDisconnected(d.Alias)
+			}
 			d.ConnectState = false
+
 			// if disconnect success, remove device from map
 			globalBluetooth.removeConnectedDevice(d)
 			// when disconnected quickly after connecting, automatically try to connect
