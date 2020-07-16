@@ -34,10 +34,11 @@ import (
 	"github.com/linuxdeepin/go-x11-client/util/keysyms"
 	"github.com/linuxdeepin/go-x11-client/util/wm/ewmh"
 	"pkg.deepin.io/dde/daemon/keybinding/util"
-	"pkg.deepin.io/gir/gio-2.0"
+	gio "pkg.deepin.io/gir/gio-2.0"
 	"pkg.deepin.io/lib/gettext"
 	"pkg.deepin.io/lib/log"
 	"pkg.deepin.io/lib/pinyin_search"
+	dutils "pkg.deepin.io/lib/utils"
 )
 
 var logger *log.Logger
@@ -46,6 +47,10 @@ const (
 	SKLCtrlShift uint32 = 1 << iota
 	SKLAltShift
 	SKLSuperSpace
+)
+
+const (
+	versionFile = "/etc/deepin-version"
 )
 
 func SetLogger(l *log.Logger) {
@@ -819,7 +824,12 @@ func (sm *ShortcutManager) AddSystem(gsettings *gio.Settings) {
 func (sm *ShortcutManager) AddWM(gsettings *gio.Settings) {
 	logger.Debug("AddWM")
 	idNameMap := getWMIdNameMap()
+	releaseType := getDeepinReleaseType()
 	for _, id := range gsettings.ListKeys() {
+		if releaseType == "Server" && strings.Contains(id, "workspace") {
+			logger.Debugf("release type is server filter '%s'", id)
+			continue
+		}
 		name := idNameMap[id]
 		if name == "" {
 			name = id
@@ -879,8 +889,13 @@ func (sm *ShortcutManager) AddKWin(wmObj *wm.Wm) {
 	}
 
 	idNameMap := getWMIdNameMap()
+	releaseType := getDeepinReleaseType()
 
 	for _, accel := range accels {
+		if releaseType == "Server" && strings.Contains(accel.Id, "workspace") {
+			logger.Debugf("release type is server filter '%s'", accel.Id)
+			continue
+		}
 		name := idNameMap[accel.Id]
 		if name == "" {
 			name = accel.Id
@@ -894,4 +909,21 @@ func (sm *ShortcutManager) AddKWin(wmObj *wm.Wm) {
 func isZH() bool {
 	lang := gettext.QueryLang()
 	return strings.HasPrefix(lang, "zh")
+}
+
+func getDeepinReleaseType() string {
+	keyFile, err := dutils.NewKeyFileFromFile(versionFile)
+	if err != nil {
+		logger.Warningf("failed to open '%s' : %s", versionFile, err)
+		return ""
+	}
+	defer keyFile.Free()
+	releaseType, err := keyFile.GetString("Release", "Type")
+	if err != nil {
+		logger.Warningf("failed to get release type : %s", err)
+		return ""
+	}
+
+	logger.Debugf("release type is %s", releaseType)
+	return releaseType
 }

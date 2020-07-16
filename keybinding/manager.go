@@ -34,7 +34,7 @@ import (
 	x "github.com/linuxdeepin/go-x11-client"
 	"github.com/linuxdeepin/go-x11-client/util/keysyms"
 	"pkg.deepin.io/dde/daemon/keybinding/shortcuts"
-	"pkg.deepin.io/gir/gio-2.0"
+	gio "pkg.deepin.io/gir/gio-2.0"
 	dbus "pkg.deepin.io/lib/dbus1"
 	"pkg.deepin.io/lib/dbusutil"
 	"pkg.deepin.io/lib/dbusutil/gsprop"
@@ -243,8 +243,10 @@ func newManager(service *dbusutil.Service) (*Manager, error) {
 	m.wm = wm.NewWm(sessionBus)
 
 	if shouldUseDDEKwin() {
+		logger.Debug("Use DDE KWin")
 		m.shortcutManager.AddKWin(m.wm)
 	} else {
+		logger.Debug("Use gnome WM")
 		m.gsGnomeWM = gio.NewSettings(gsSchemaGnomeWM)
 		m.shortcutManager.AddWM(m.gsGnomeWM)
 	}
