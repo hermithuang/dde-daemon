@@ -227,10 +227,11 @@ func newManager(service *dbusutil.Service) (*Manager, error) {
 	m.gsSystem = gio.NewSettings(gsSchemaSystem)
 	m.gsMediaKey = gio.NewSettings(gsSchemaMediaKey)
 	m.gsPower = gio.NewSettings(gsSchemaSessionPower)
+	m.wm = wm.NewWm(sessionBus)
 
 	m.shortcutManager = shortcuts.NewShortcutManager(m.conn, m.keySymbols, m.handleKeyEvent)
 	m.shortcutManager.AddSpecial()
-	m.shortcutManager.AddSystem(m.gsSystem)
+	m.shortcutManager.AddSystem(m.gsSystem, m.wm)
 	m.shortcutManager.AddMedia(m.gsMediaKey)
 
 	// when session is locked, we need handle some keyboard function event
@@ -239,8 +240,6 @@ func newManager(service *dbusutil.Service) (*Manager, error) {
 	m.lockFront.ConnectChangKey(func(changKey string) {
 		m.handleKeyEventFromLockFront(changKey)
 	})
-
-	m.wm = wm.NewWm(sessionBus)
 
 	if shouldUseDDEKwin() {
 		logger.Debug("Use DDE KWin")
