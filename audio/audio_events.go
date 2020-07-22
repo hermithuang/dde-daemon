@@ -22,12 +22,12 @@ package audio
 import (
 	"sort"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 
-	"pkg.deepin.io/lib/dbus1"
-	"pkg.deepin.io/lib/pulse"
+	dbus "pkg.deepin.io/lib/dbus1"
 	"pkg.deepin.io/lib/gsettings"
+	"pkg.deepin.io/lib/pulse"
 )
 
 func (a *Audio) handleEvent() {
@@ -99,6 +99,7 @@ func (a *Audio) handleCardEvent(eventType int, idx uint32) {
 		if added {
 			a.PropsMu.Lock()
 			a.setPropCards(cards.string())
+			a.setPropCardsWithoutUnavailable(cards.stringWithoutUnavailable())
 			a.PropsMu.Unlock()
 			a.cards = cards
 		}
@@ -113,6 +114,7 @@ func (a *Audio) handleCardEvent(eventType int, idx uint32) {
 		if deleted {
 			a.PropsMu.Lock()
 			a.setPropCards(cards.string())
+			a.setPropCardsWithoutUnavailable(cards.stringWithoutUnavailable())
 			a.PropsMu.Unlock()
 			a.cards = cards
 		}
@@ -129,6 +131,7 @@ func (a *Audio) handleCardEvent(eventType int, idx uint32) {
 			card.update(cardInfo)
 			a.PropsMu.Lock()
 			a.setPropCards(a.cards.string())
+			a.setPropCardsWithoutUnavailable(a.cards.stringWithoutUnavailable())
 			a.PropsMu.Unlock()
 		}
 		a.mu.Unlock()
@@ -446,7 +449,7 @@ func isPhysicalDevice(deviceName string) bool {
 			return false
 		}
 	}
-	return  true
+	return true
 }
 
 func (a *Audio) handleServerEvent(eventType int) {

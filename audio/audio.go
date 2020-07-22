@@ -31,7 +31,7 @@ import (
 
 	"golang.org/x/xerrors"
 	"pkg.deepin.io/dde/daemon/common/dsync"
-	"pkg.deepin.io/gir/gio-2.0"
+	gio "pkg.deepin.io/gir/gio-2.0"
 	dbus "pkg.deepin.io/lib/dbus1"
 	"pkg.deepin.io/lib/dbusutil"
 	"pkg.deepin.io/lib/dbusutil/gsprop"
@@ -92,12 +92,13 @@ type Audio struct {
 	// dbusutil-gen: equal=objectPathSliceEqual
 	Sinks []dbus.ObjectPath
 	// dbusutil-gen: equal=objectPathSliceEqual
-	Sources        []dbus.ObjectPath
-	DefaultSink    dbus.ObjectPath
-	DefaultSource  dbus.ObjectPath
-	Cards          string
-	IncreaseVolume gsprop.Bool `prop:"access:rw"`
-	defaultPaCfg   defaultPaConfig
+	Sources                 []dbus.ObjectPath
+	DefaultSink             dbus.ObjectPath
+	DefaultSource           dbus.ObjectPath
+	Cards                   string
+	CardsWithoutUnavailable string
+	IncreaseVolume          gsprop.Bool `prop:"access:rw"`
+	defaultPaCfg            defaultPaConfig
 
 	// dbusutil-gen: ignore
 	// 最大音量
@@ -308,6 +309,7 @@ func (a *Audio) init() error {
 
 	a.PropsMu.Lock()
 	a.setPropCards(a.cards.string())
+	a.setPropCardsWithoutUnavailable(a.cards.stringWithoutUnavailable())
 	a.PropsMu.Unlock()
 
 	a.eventChan = make(chan *pulse.Event, 100)
@@ -562,7 +564,7 @@ func (a *Audio) setPort(cardId uint32, portName string, direction int) error {
 }
 
 func (a *Audio) resetSinksVolume() {
-	logger.Debug("reset sink volume",defaultOutputVolume)
+	logger.Debug("reset sink volume", defaultOutputVolume)
 	for _, s := range a.ctx.GetSinkList() {
 		a.ctx.SetSinkMuteByIndex(s.Index, false)
 		curPort := s.ActivePort.Name
@@ -590,7 +592,7 @@ func (a *Audio) resetSinksVolume() {
 }
 
 func (a *Audio) resetSourceVolume() {
-	logger.Debug("reset source volume",defaultInputVolume)
+	logger.Debug("reset source volume", defaultInputVolume)
 	for _, s := range a.ctx.GetSourceList() {
 		a.ctx.SetSourceMuteByIndex(s.Index, false)
 		cv := s.Volume.SetAvg(defaultInputVolume).SetBalance(s.ChannelMap,

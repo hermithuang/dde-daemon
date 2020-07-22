@@ -131,6 +131,32 @@ func (cards CardList) string() string {
 	return toJSON(list)
 }
 
+func (cards CardList) stringWithoutUnavailable() string {
+	var list []CardExport
+	for _, cardInfo := range cards {
+		var ports []CardPortExport
+		for _, portInfo := range cardInfo.Ports {
+			if portInfo.Available == pulse.AvailableTypeNo {
+				logger.Debugf("port '%s(%s)' is unavailable", portInfo.Name, portInfo.Description)
+				continue
+			}
+			ports = append(ports, CardPortExport{
+				Name:        portInfo.Name,
+				Description: portInfo.Description,
+				Direction:   portInfo.Direction,
+			})
+		}
+
+		list = append(list, CardExport{
+			Id:    cardInfo.Id,
+			Name:  cardInfo.Name,
+			Ports: ports,
+		})
+	}
+
+	return toJSON(list)
+}
+
 func (cards CardList) get(id uint32) (*Card, error) {
 	for _, info := range cards {
 		if info.Id == id {
