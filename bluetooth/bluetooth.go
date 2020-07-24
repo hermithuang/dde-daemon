@@ -656,29 +656,52 @@ func (b *Bluetooth) updateState() {
 }
 
 func (b *Bluetooth) tryConnectPairedDevices() {
+	//input and audio devices counter
+	typeMap := make(map[string]uint8)
+	typeMap["audio-card"] = 0
+	typeMap["input-keyboard"] = 0
+	typeMap["input-mouse"] = 0
+	typeMap["input-tablet"] = 0
+
 	var devList = b.getPairedDeviceList()
 	for _, dev := range devList {
 		// make sure dev always exist
 		if dev == nil {
 			continue
 		}
-		logger.Info("[DEBUG] Auto connect device:", dev.Path)
-
-		// if device using LE mode, will suspend, try connect should be failed, filter it.
-		if !b.isBREDRDevice(dev) {
-			continue
-		}
-		logger.Debug("Will auto connect device:", dev.String(), dev.adapter.address, dev.Address)
-		err := dev.doConnect(false)
-		if err != nil {
-			logger.Debug("failed to connect:", dev.String(), err)
-		} else {
-			// if auto connect success, add device into map connectedDevices
-			if dev.ConnectState == true {
-				b.addConnectedDevice(dev)
+		//connect back to a device
+		switch dev.Icon {
+		case "audio-card", "input-keyboard", "input-mouse", "input-tablet":
+			if typeMap[dev.Icon] == 0 {
+				if b.tryConnectPairedDevice(dev) {
+					typeMap[dev.Icon]++
+				}
 			}
+		default:
+			b.tryConnectPairedDevice(dev)
 		}
 	}
+}
+
+func (b *Bluetooth) tryConnectPairedDevice(dev *device) bool {
+	logger.Info("[DEBUG] Auto connect device:", dev.Path)
+
+	// if device using LE mode, will suspend, try connect should be failed, filter it.
+	if !b.isBREDRDevice(dev) {
+		return false
+	}
+	logger.Debug("Will auto connect device:", dev.String(), dev.adapter.address, dev.Address)
+	err := dev.doConnect(false)
+	if err != nil {
+		logger.Debug("failed to connect:", dev.String(), err)
+		return false
+	} else {
+		// if auto connect success, add device into map connectedDevices
+		if dev.ConnectState == true {
+			b.addConnectedDevice(dev)
+		}
+	}
+	return true
 }
 
 // get paired device list
@@ -707,9 +730,9 @@ func (b *Bluetooth) getPairedDeviceList() []*device {
 				continue
 			}
 			devAddressMap[value.getAddress()] = value
+			logger.Debug("devAddressMap", value)
 		}
 	}
-
 	// select the latest devices of each deviceType and add them into list
 	devList := b.config.filterDemandedTypeDevices(devAddressMap)
 

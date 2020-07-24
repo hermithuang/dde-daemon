@@ -273,6 +273,7 @@ func (d *device) connectProperties() {
 		if connected {
 			d.ConnectState = true
 			d.connectedTime = time.Now()
+			globalBluetooth.config.setDeviceConfigConnected(d, true)
 		} else {
 			//If the pairing is successful and connected, the signal will be sent when the device is disconnected
 			if d.Paired && d.ConnectState {
@@ -503,7 +504,7 @@ func (d *device) doConnect(hasNotify bool) error {
 		}
 		return err
 	}
-	// d.audioA2DPWorkaround()
+	d.audioA2DPWorkaround()
 
 	err = d.doRealConnect()
 	if err != nil {

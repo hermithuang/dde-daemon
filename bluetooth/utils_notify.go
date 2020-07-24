@@ -98,6 +98,7 @@ func notifyConnected(alias string) {
 	format := Tr("Connect %q successfully")
 	notify(notifyIconBluetoothConnected, "", fmt.Sprintf(format, alias))
 }
+
 func notifyDisconnected(alias string) {
 	format := Tr("%q disconnected")
 	notify(notifyIconBluetoothDisconnected, "", fmt.Sprintf(format, alias))
