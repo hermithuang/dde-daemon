@@ -287,7 +287,8 @@ func (m *Manager) handleKeyEventFromLockFront(changKey string) {
 
 	// numlock/capslock
 	if action.Type == shortcuts.ActionTypeShowNumLockOSD ||
-		action.Type == shortcuts.ActionTypeShowCapsLockOSD {
+		action.Type == shortcuts.ActionTypeShowCapsLockOSD ||
+		action.Type == shortcuts.ActionTypeSystemShutdown {
 		if handler := m.handlers[int(action.Type)]; handler != nil {
 			handler(nil)
 		} else {
