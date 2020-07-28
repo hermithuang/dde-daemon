@@ -99,6 +99,7 @@ type Bluetooth struct {
 	sysDBusDaemon *ofdbus.DBus
 	apiDevice     *apidevice.Device
 	agent         *agent
+	obexAgent     *obexAgent
 
 	// adapter
 	adaptersLock sync.Mutex
@@ -260,6 +261,8 @@ func (b *Bluetooth) init() {
 
 	b.agent.init()
 	b.loadObjects()
+
+	b.obexAgent.init()
 
 	b.config.clearSpareConfig(b)
 	b.config.save()

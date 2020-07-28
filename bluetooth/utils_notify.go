@@ -22,13 +22,13 @@ package bluetooth
 import (
 	"fmt"
 	"os/exec"
-	"pkg.deepin.io/lib/dbusutil"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/linuxdeepin/go-dbus-factory/org.freedesktop.notifications"
+	notifications "github.com/linuxdeepin/go-dbus-factory/org.freedesktop.notifications"
 	dbus "pkg.deepin.io/lib/dbus1"
+	"pkg.deepin.io/lib/dbusutil"
 	. "pkg.deepin.io/lib/gettext"
 )
 
@@ -51,7 +51,7 @@ var globalNotifyMu sync.Mutex
 func initNotifications() error {
 	// init global notification timer instance
 	globalTimerNotifier = GetTimerNotifyInstance()
-	
+
 	sessionBus, err := dbus.SessionBus()
 	if err != nil {
 		return err
