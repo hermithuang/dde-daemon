@@ -1,6 +1,7 @@
 package bluetooth
 
 import (
+	"errors"
 	"fmt"
 
 	dbus "pkg.deepin.io/lib/dbus1"
@@ -123,6 +124,33 @@ func (b *Bluetooth) RequestDiscovery(apath dbus.ObjectPath) *dbus.Error {
 	}
 
 	a.startDiscovery()
+
+	return nil
+}
+
+// SendFiles 用来发送文件给蓝牙设备，仅支持发送给已连接设备
+func (b *Bluetooth) SendFiles(devAddress string, files []string) (dbus.ObjectPath, *dbus.Error) {
+	// 检查设备是否已经连接
+	dev := b.getConnectedDeviceByAddress(devAddress)
+	if dev == nil {
+		return "", dbusutil.ToError(errors.New("device not connected"))
+	}
+
+	sessionPath, err := b.sendFiles(dev, files)
+	return sessionPath, dbusutil.ToError(err)
+}
+
+// CancelTransferSession 用来取消发送的会话，将会终止会话中所有的传送任务
+func (b *Bluetooth) CancelTransferSession(sessionPath dbus.ObjectPath) *dbus.Error {
+	b.sessionCancelChMapMu.Lock()
+	defer b.sessionCancelChMapMu.Unlock()
+
+	cancelCh, ok := b.sessionCancelChMap[sessionPath]
+	if !ok {
+		return dbusutil.ToError(errors.New("session not exists"))
+	}
+
+	cancelCh <- struct{}{}
 
 	return nil
 }
