@@ -68,6 +68,15 @@ func getCardName(card *pulse.Card) (name string) {
 	return
 }
 
+func (a *Audio) getCardNameById(cardId uint32) string {
+	card, err := a.ctx.GetCard(cardId)
+	if err != nil {
+		logger.Warning(err)
+		return ""
+	}
+	return card.Name
+}
+
 func (c *Card) update(card *pulse.Card) {
 	c.Id = card.Index
 	c.Name = getCardName(card)
