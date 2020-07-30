@@ -740,19 +740,16 @@ func (a *Audio) updateDefaultSource(sourceName string) {
 		return
 	}
 	logger.Debugf("updateDefaultSource #%d %s", sourceInfo.Index, sourceName)
-	if isPhysicalDevice(sourceName) {
-		err := a.setReduceNoise(a.ReduceNoise.Get())
-		if err != nil {
-			logger.Warning("set reduce noise fail:", err)
-		}
-	} else {
+	a.mu.Lock()
+
+	if !isPhysicalDevice(sourceName) {
 		sourceInfo = a.getSourceInfoByName(sourceInfo.Proplist["device.master_device"])
 		if sourceInfo == nil {
 			logger.Warning("failed to get virtual device sourceInfo for name:", sourceName)
 			return
 		}
 	}
-	a.mu.Lock()
+
 	source, ok := a.sources[sourceInfo.Index]
 	if !ok {
 		a.mu.Unlock()
@@ -780,9 +777,13 @@ func (a *Audio) updateDefaultSource(sourceName string) {
 	if err != nil {
 		logger.Warning(err)
 	}
-	err1 := a.setReduceNoise(portConfig.ReduceNoise)
-	if err1 != nil {
-		logger.Warning(err1)
+
+	if isPhysicalDevice(sourceName) {
+		a.ReduceNoise.Set(portConfig.ReduceNoise)
+		err := a.setReduceNoise(portConfig.ReduceNoise)
+		if err != nil {
+			logger.Warning("set reduce noise fail:", err)
+		}
 	}
 }
 
