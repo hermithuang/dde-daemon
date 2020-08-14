@@ -137,9 +137,10 @@ func (a *adapter) connectProperties() {
 		}
 		a.Powered = value
 		logger.Debugf("%s Powered: %v", a, value)
-		// set adapter powered config
-		globalBluetooth.config.setAdapterConfigPowered(a.address, value)
-		// check if powered state is true
+
+		// Sleep for 1s and wait for bluez to set the attributes before sending the attribute change signal
+		time.Sleep(1 * time.Second)
+
 		if a.Powered {
 			// set discoverable time out
 			err := a.core.DiscoverableTimeout().Set(0, 300)
