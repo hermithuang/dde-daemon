@@ -94,6 +94,7 @@ Requires:       rfkill
 Requires:       gvfs
 Requires:       iw
 
+Recommends:     lshw
 Recommends:     iso-codes
 Recommends:     imwheel
 Recommends:     mobile-broadband-provider-info
