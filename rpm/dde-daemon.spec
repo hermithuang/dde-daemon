@@ -121,7 +121,11 @@ sed -i 's|lib/NetworkManager|libexec|' network/utils_test.go
 
 for file in $(grep "/usr/lib/deepin-daemon" * -nR |awk -F: '{print $1}')
 do
-    sed -i 's|/usr/lib/deepin-daemon|/usr/libexec/deepin-daemon|g' $file
+    sed -i 's|/usr/lib/deepin-daemon|%{_libexecdir}/deepin-daemon|g' $file
+done
+for file in $(grep "/usr/lib/deepin-api" * -nR |awk -F: '{print $1}')
+do
+    sed -i 's|/usr/lib/deepin-api|%{_libexecdir}/deepin-api|g' $file
 done
 
 # Fix grub.cfg path
