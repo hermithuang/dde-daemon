@@ -22,7 +22,6 @@ package network
 import (
 	"errors"
 	"fmt"
-	"net"
 	"strings"
 	"time"
 
@@ -70,8 +69,6 @@ type device struct {
 	MobileSignalQuality uint32
 
 	InterfaceFlags uint32
-
-	quitFlagsCheckChan chan struct{}
 }
 
 const (
@@ -393,6 +390,20 @@ func (m *Manager) newDevice(devPath dbus.ObjectPath) (dev *device, err error) {
 		logger.Warning(err)
 	}
 
+	err = dev.nmDev.InterfaceFlags().ConnectChanged(func(hasValue bool, value uint32) {
+		if !hasValue {
+			return
+		}
+
+		dev.InterfaceFlags = value
+		m.devicesLock.Lock()
+		m.updatePropDevices()
+		m.devicesLock.Unlock()
+	})
+	if err != nil {
+		logger.Warning(err)
+	}
+
 	err = dev.nmDev.Managed().ConnectChanged(func(hasValue bool, value bool) {
 		if !hasValue {
 			return
@@ -409,6 +420,7 @@ func (m *Manager) newDevice(devPath dbus.ObjectPath) (dev *device, err error) {
 
 	dev.State, _ = nmDev.State().Get(0)
 	dev.Interface, _ = nmDev.Interface().Get(0)
+	dev.InterfaceFlags, _ = nmDev.InterfaceFlags().Get(0)
 	// get device enable state from system network
 	enabled, _ := m.sysNetwork.IsDeviceEnabled(0, dev.Interface)
 	// adjust device enable state
@@ -422,51 +434,10 @@ func (m *Manager) newDevice(devPath dbus.ObjectPath) (dev *device, err error) {
 	}
 	dev.Managed = nmGeneralIsDeviceManaged(devPath)
 
-	// TODO: NetworkManager 升级 1.22 后，直接使用 NetworkManager 的 InterfaceFlags 属性
-	dev.InterfaceFlags = m.getInterfaceFlags(dev)
-	ticker := time.NewTicker(1 * time.Second)
-	dev.quitFlagsCheckChan = make(chan struct{})
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				newFlags := m.getInterfaceFlags(dev)
-				if dev.InterfaceFlags != newFlags {
-					dev.InterfaceFlags = newFlags
-
-					m.devicesLock.Lock()
-					m.updatePropDevices()
-					m.devicesLock.Unlock()
-				}
-
-			case <-dev.quitFlagsCheckChan:
-				ticker.Stop()
-				return
-			}
-		}
-	}()
-
 	return
 }
 
-func (m *Manager) getInterfaceFlags(dev *device) uint32 {
-	interfaceInfo, err := net.InterfaceByName(dev.Interface)
-	if err != nil {
-		logger.Warning("failed to get interface info:", err)
-		return 0
-	}
-
-	var flags uint32
-	if interfaceInfo.Flags&net.FlagUp != 0 {
-		flags |= nmInterfaceFlagUP
-	}
-
-	return flags
-}
-
 func (m *Manager) destroyDevice(dev *device) {
-	close(dev.quitFlagsCheckChan)
-
 	// destroy object to reset all property connects
 	if dev.mmDevModem != nil {
 		mmDestroyModem(dev.mmDevModem)
