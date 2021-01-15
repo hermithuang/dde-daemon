@@ -318,7 +318,7 @@ func (l *Lastore) notifyJob(path dbus.ObjectPath) {
 		val, _ := l.core.UpdatablePackages().Get(0)
 		if status == SucceedStatus && len(val) > 0 &&
 			strings.Contains(info.Name, "+notify") {
-			l.notifyUpdateSource(l.createUpdateActions())
+			//l.notifyUpdateSource(l.createUpdateActions())
 		}
 	}
 }
