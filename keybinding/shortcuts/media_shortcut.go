@@ -106,12 +106,10 @@ var mediaIdActionMap = map[string]*Action{
 	"touchpad-off":    NewTouchpadCtrlAction(TouchpadOff),
 
 	// power
-	"power-off":  &Action{Type: ActionTypeSystemShutdown},
-	"power-down": &Action{Type: ActionTypeSystemShutdown},
-	"suspend":    &Action{Type: ActionTypeSystemSuspend},
-	"sleep":      &Action{Type: ActionTypeSystemSuspend},
-	"log-off":    &Action{Type: ActionTypeSystemLogOff},
-	"away":       &Action{Type: ActionTypeSystemAway},
+	"suspend": &Action{Type: ActionTypeSystemSuspend},
+	"sleep":   &Action{Type: ActionTypeSystemSuspend},
+	"log-off": &Action{Type: ActionTypeSystemLogOff},
+	"away":    &Action{Type: ActionTypeSystemAway},
 
 	// We do not need to deal with XF86Wlan key default,
 	// but can be specially by 'EnableNetworkController'
