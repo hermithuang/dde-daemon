@@ -18,7 +18,7 @@ Name:           %{sname}
 %else
 Name:           %{repo}
 %endif
-Version:        5.12.0.25
+Version:        5.12.52
 Release:        1%{?fedora:%dist}
 Summary:        Daemon handling the DDE session settings
 License:        GPLv3
@@ -55,6 +55,7 @@ BuildRequires:  golang(github.com/kelvins/sunrisesunset)
 BuildRequires:  golang(github.com/rickb777/date)
 BuildRequires:  golang(github.com/teambition/rrule-go)
 BuildRequires:  golang(github.com/davecgh/go-spew/spew)
+BuildRequires:  golang(github.com/Lofanmi/pinyin-golang/pinyin)
 %else
 BuildRequires:  gocode
 BuildRequires:  ddcutil-devel
@@ -163,6 +164,7 @@ sed -i 's/google-chrome/chromium-browser/g' misc/dde-daemon/mime/data.json
 BUILDID="0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')"
 %if 0%{?fedora}
 export GOPATH="$(pwd)/build:%{gopath}"
+export %{gomodulesmode}
 %else
 export GOPATH=/usr/share/gocode
 %endif
@@ -172,6 +174,7 @@ export GOPATH=/usr/share/gocode
 BUILDID="0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')"
 %if 0%{?fedora}
 export GOPATH="$(pwd)/build:%{gopath}"
+export %{gomodulesmode}
 %else
 export GOPATH=/usr/share/gocode
 %endif
