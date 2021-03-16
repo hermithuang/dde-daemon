@@ -20,6 +20,7 @@
 package power
 
 import (
+	"os/exec"
 	"time"
 
 	dbus "github.com/godbus/dbus"
@@ -93,6 +94,12 @@ func (m *Manager) handleBeforeSuspend() {
 }
 
 func (m *Manager) handleWakeup() {
+	go func() {
+		err := exec.Command("xdotool key 00").Run()
+		if err != nil {
+			logger.Warning(err)
+		}
+	}()
 	m.setPrepareSuspend(suspendStateWakeup)
 	logger.Debug("wakeup")
 	if m.SleepLock.Get() {
