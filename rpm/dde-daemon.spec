@@ -29,9 +29,6 @@ BuildRequires:  pam >= 1.3.1
 BuildRequires:  glib2-devel
 BuildRequires:  gtk3-devel
 BuildRequires:  systemd-devel
-BuildRequires:  resize-devel
-BuildRequires:  gorm-devel
-BuildRequires:  inflection-devel
 BuildRequires:  alsa-lib-devel
 BuildRequires:  alsa-lib
 BuildRequires:  pulseaudio-libs-devel
