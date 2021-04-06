@@ -11,7 +11,7 @@
 %global release_name server-industry
 
 Name:           dde-daemon
-Version:        5.13.9
+Version:        5.13.12.1
 Release:        1
 Summary:        Daemon handling the DDE session settings
 License:        GPLv3
@@ -181,6 +181,6 @@ fi
 /lib/systemd/system/deepin-accounts-daemon.service
 
 %changelog
-* Wed Mar 12 2021 uoser <uoser@uniontech.com> - 5.13.9-1
-- Update to 5.13.9
+* Tue Apr 6 2021 uoser <uoser@uniontech.com> - 5.13.12.1-1
+- Update to 5.13.12.1
 
