@@ -81,7 +81,10 @@ BuildRequires:  librsvg2-devel
 BuildRequires:  libXcursor-devel
 BuildRequires:  pkgconfig(sqlite3)
 
-Requires:       bluez-libs%{?_isa}
+Requires:       bamf-daemon
+Requires:       bluez-obexd
+Requires:       gnome-keyring
+Requires:       redshift
 Requires:       deepin-desktop-base
 Requires:       deepin-desktop-schemas
 %if 0%{?fedora}
