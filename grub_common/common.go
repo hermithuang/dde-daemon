@@ -19,6 +19,7 @@ import (
 const (
 	GrubParamsFile            = "/etc/default/grub"
 	GfxmodeDetectReadyPath    = "/tmp/deepin-gfxmode-detect-ready"
+	DeepinGfxmode             = "DEEPIN_GFXMODE"
 	DeepinGfxmodeDetect       = "DEEPIN_GFXMODE_DETECT"
 	DeepinGfxmodeAdjusted     = "DEEPIN_GFXMODE_ADJUSTED"
 	DeepinGfxmodeNotSupported = "DEEPIN_GFXMODE_NOT_SUPPORTED"

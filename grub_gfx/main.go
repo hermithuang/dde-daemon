@@ -60,7 +60,10 @@ func detectChange() {
 	}
 	logger.Debug("maxNotSupported:", maxNotSupported)
 
-	cfgGfxmodeStr := grub_common.DecodeShellValue(params["GRUB_GFXMODE"])
+	cfgGfxmodeStr, ok := params[grub_common.DeepinGfxmode]
+	if !ok {
+		cfgGfxmodeStr = grub_common.DecodeShellValue(params["GRUB_GFXMODE"])
+	}
 	logger.Debug("cfgGfxmodeStr:", cfgGfxmodeStr)
 	cfgGfxmode, cfgGfxmodeErr := grub_common.ParseGfxmode(cfgGfxmodeStr)
 	if cfgGfxmodeErr != nil {

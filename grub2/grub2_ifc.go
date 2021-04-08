@@ -248,23 +248,28 @@ func (g *Grub2) PrepareGfxmodeDetect(sender dbus.Sender) *dbus.Error {
 		return dbusutil.ToError(err)
 	}
 
-	gfxmodes, err := g.getGfxmodesFromXRandr(sender)
-	if err != nil {
-		logger.Debug("failed to get gfxmodes from XRandr:", err)
-	}
-
-	gfxmodes.SortDesc()
-	gfxmodesStr := joinGfxmodesForDetect(gfxmodes)
-
-	g.PropsMu.RLock()
-	gfxmodeDetectState := g.gfxmodeDetectState
-	g.PropsMu.RUnlock()
-
 	params, err := grub_common.LoadGrubParams()
 	if err != nil {
 		logger.Warning("failed to load grub params:", err)
 		return dbusutil.ToError(err)
 	}
+
+	var gfxmodes grub_common.Gfxmodes
+
+	gfxmodesStr, ok := params[grub_common.DeepinGfxmode]
+	if !ok {
+		gfxmodes, err = g.getGfxmodesFromXRandr(sender)
+		if err != nil {
+			logger.Debug("failed to get gfxmodes from XRandr:", err)
+		}
+
+		gfxmodes.SortDesc()
+		gfxmodesStr = joinGfxmodesForDetect(gfxmodes)
+	}
+
+	g.PropsMu.RLock()
+	gfxmodeDetectState := g.gfxmodeDetectState
+	g.PropsMu.RUnlock()
 
 	if gfxmodeDetectState == gfxmodeDetectStateDetecting {
 		return dbusutil.ToError(errors.New("already in detection mode"))
